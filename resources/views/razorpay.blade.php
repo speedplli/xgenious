@@ -11,7 +11,7 @@
 
         <!--amount need to be in paisa-->
             <script src="https://checkout.razorpay.com/v1/checkout.js"
-                    data-key="{{ config('paymentgateway.razorpay.api_key')}}"
+                    data-key="{{ $razorpay_data['api_key']}}"
                     data-currency="{{$razorpay_data['currency']}}"
                     data-amount="{{ceil($razorpay_data['price'] * 100)}}"
                     data-buttontext="{{'Pay '.$razorpay_data['price'].' INR'}}"

@@ -148,7 +148,8 @@ class GlobalCurrency
             'XCD' => '$',
             'XPF' => '₣',
             'YER' => '﷼',
-            'ZAR' => 'R'
+            'ZAR' => 'R',
+            'TND' => 'د.ت',
         ];
     }
 }

@@ -10,7 +10,12 @@ use Xgenious\Paymentgateway\Facades\XgPaymentGateway;
 class PaystackPaymentController extends Controller
 {
     public function redirect_to_gateway(Request $request){
-        XgPaymentGateway::paystack()->setConfig();
+        config(array_merge([
+            'paystack.merchantEmail' => $request->merchantEmail,
+            'paystack.secretKey' => base64_decode($request->secretKey),
+            'paystack.publicKey' => $request->publicKey,
+            'paystack.paymentUrl' => 'https://api.paystack.co',
+        ]));
 
         try{
             return Paystack::getAuthorizationUrl()->redirectNow();

@@ -1,12 +1,28 @@
 <?php
 
 namespace Xgenious\Paymentgateway\Base\Gateways;
+use Illuminate\Support\Facades\Config;
 use Mollie\Laravel\Facades\Mollie;
 use Xgenious\Paymentgateway\Base\PaymentGatewayBase;
+use Xgenious\Paymentgateway\Traits\ConvertUsdSupport;
+use Xgenious\Paymentgateway\Traits\CurrencySupport;
+use Xgenious\Paymentgateway\Traits\PaymentEnvironment;
 
 class MolliePay extends PaymentGatewayBase
 {
+    protected $api_key;
 
+
+    public function setApiKey($key){
+        $this->api_key = $key;
+        return $this;
+    }
+
+    public function getApiKey(){
+        return $this->api_key;
+    }
+
+    use PaymentEnvironment,CurrencySupport,ConvertUsdSupport;
     /**
      * to work this payment gateway you must have this laravel package
      * https://github.com/mollie/laravel-mollie
@@ -16,10 +32,10 @@ class MolliePay extends PaymentGatewayBase
      */
     public function charge_amount($amount)
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
             return $amount;
         }
-        return self::get_amount_in_usd($amount);
+        return $this->get_amount_in_usd($amount);
     }
 
     /**
@@ -28,6 +44,7 @@ class MolliePay extends PaymentGatewayBase
      */
     public function ipn_response(array $args = [])
     {
+        $this->setConfig();
         $payment_id = session()->get('mollie_payment_id');
         $payment = Mollie::api()->payments->get($payment_id);
         session()->forget('mollie_payment_id');
@@ -48,6 +65,7 @@ class MolliePay extends PaymentGatewayBase
      */
     public function charge_customer(array $args)
     {
+        $this->setConfig();
         $charge_amount = round($this->charge_amount($args['amount']), 2);
         $order_id =  random_int(12345,99999).$args['order_id'].random_int(12345,99999);
         try{
@@ -66,7 +84,6 @@ class MolliePay extends PaymentGatewayBase
 
         }catch(\Exception $e){
             $msg = '';
-//            dd($e->getMessage());
             switch($e->getCode()){
                 case(400):
                     $msg = __('Bad Request – The Mollie API was unable to understand your request. There might be an error in your syntax.');
@@ -130,14 +147,18 @@ class MolliePay extends PaymentGatewayBase
     {
         return ['AED', 'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'HRK', 'HUF', 'ILS', 'ISK', 'JPY', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 'RUB', 'SEK', 'SGD', 'THB', 'TWD', 'USD', 'ZAR'];
     }
-
+    private function setConfig(){
+        Config::set([
+            'mollie.key' => $this->getApiKey()
+        ]);
+    }
     /**
      * @inheritDoc
      */
     public function charge_currency()
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())) {
-            return self::global_currency();
+        if (in_array($this->getCurrency(), $this->supported_currency_list())) {
+            return $this->getCurrency();
         }
         return "USD";
     }

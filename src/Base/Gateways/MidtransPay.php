@@ -3,10 +3,17 @@
 namespace Xgenious\Paymentgateway\Base\Gateways;
 
 use Illuminate\Support\Str;
+use Xgenious\Paymentgateway\Base\GlobalCurrency;
 use Xgenious\Paymentgateway\Base\PaymentGatewayBase;
+use Xgenious\Paymentgateway\Traits\CurrencySupport;
+use Xgenious\Paymentgateway\Traits\PaymentEnvironment;
 
 class MidtransPay extends PaymentGatewayBase
 {
+    use PaymentEnvironment,CurrencySupport;
+
+    protected $server_key;
+    protected $client_key;
     /*
 * charge_amount();
 * @required param list
@@ -16,10 +23,46 @@ class MidtransPay extends PaymentGatewayBase
 * */
     public function charge_amount($amount)
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
             return $amount;
         }
-        return self::get_amount_in_idr($amount);
+        return $this->get_amount_in_idr($amount);
+    }
+
+    /**
+     * convert amount to idr currency base on conversation given by admin
+     * */
+    private  function make_amount_in_idr($amount, $currency)
+    {
+        $output = 0;
+        $all_currency = GlobalCurrency::script_currency_list();
+        foreach ($all_currency as $cur => $symbol) {
+            if ($cur == 'IDR') {
+                continue;
+            }
+            if ($cur == $currency) {
+                $exchange_rate = $this->getExchangeRate();
+                $output = $amount * $exchange_rate;
+            }
+        }
+
+        return $output;
+    }
+    /**
+     * get_amount_in_idr()
+     * @since 1.0.0
+     * this function return any amount to usd based on user given currency conversation value,
+     * it will not work if admin did not give currency conversation rate
+     * */
+    protected  function get_amount_in_idr($amount){
+        if ($this->getCurrency() === 'IDR'){
+            return $amount;
+        }
+        $payable_amount = $this->make_amount_in_idr($amount, $this->getCurrency() );
+        if ($payable_amount < 1) {
+            return $payable_amount . __('amount is not supported by '.$this->gateway_name());
+        }
+        return $payable_amount;
     }
 
 
@@ -107,8 +150,8 @@ class MidtransPay extends PaymentGatewayBase
      * */
     public function charge_currency()
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())) {
-            return self::global_currency();
+        if (in_array($this->getCurrency(), $this->supported_currency_list())) {
+            return $this->getCurrency();
         }
         return "IDR";
     }
@@ -121,13 +164,32 @@ class MidtransPay extends PaymentGatewayBase
         return ['IDR'];
     }
 
+    /* set app id */
+    public function setClientKey($client_key){
+        $this->client_key = $client_key;
+        return $this;
+    }
+    /* set app secret */
+    public function setServerKey($server_key){
+        $this->server_key = $server_key;
+        return $this;
+    }
+    /* get app id */
+    private function getClientKey(){
+        return  $this->client_key;
+    }
+    /* get secret key */
+    private function getServerKey(){
+        return $this->server_key;
+    }
+
 
     private function setConfig(array $args = [])
     {
         // Set your Merchant Server Key
-        \Midtrans\Config::$serverKey = config('paymentgateway.midtrans.server_key');
+        \Midtrans\Config::$serverKey = $this->getServerKey();
 // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
-        \Midtrans\Config::$isProduction = config('paymentgateway.midtrans.envaironment');
+        \Midtrans\Config::$isProduction = !$this->getEnv();
 // Set sanitization on (default)
         \Midtrans\Config::$isSanitized = true;
 // Set 3DS transaction for credit card to true

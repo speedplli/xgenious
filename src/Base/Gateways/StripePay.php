@@ -7,11 +7,34 @@ use Stripe\Charge;
 use Stripe\Stripe;
 use Stripe\StripeClient;
 use Stripe\Checkout\Session;
+use Xgenious\Paymentgateway\Traits\CurrencySupport;
+use Xgenious\Paymentgateway\Traits\PaymentEnvironment;
 
 class StripePay extends PaymentGatewayBase
 {
 
-   /**
+    use PaymentEnvironment,CurrencySupport;
+
+    protected $secret_key;
+    protected $public_key;
+
+   public function setSecretKey($secret_key){
+       $this->secret_key = $secret_key;
+       return $this;
+   }
+   private function getSecretKey(){
+       return $this->secret_key;
+   }
+    public function setPublicKey($public_key){
+       $this->public_key = $public_key;
+       return $this;
+    }
+    private function getPublicKey(){
+       return $this->public_key;
+    }
+
+
+    /**
      * this payment gateway will not work without this package
      * @https://github.com/stripe/stripe-php
      * @since .0.01
@@ -19,9 +42,9 @@ class StripePay extends PaymentGatewayBase
     public function charge_amount($amount)
     {
         $return_amount = $amount;
-        if (in_array(self::global_currency(), $this->supported_currency_list(), true)){
-            if(in_array(self::global_currency(), $this->zero_decimal_currencies())){
-                return $return_amount;
+        if (in_array($this->getCurrency(), $this->supported_currency_list(), true)){
+            if(in_array($this->getCurrency(), $this->zero_decimal_currencies())){
+                return ceil($return_amount);
             }
             return $amount * 100;
         }
@@ -48,7 +71,7 @@ class StripePay extends PaymentGatewayBase
         $stripe_order_id = session()->get('stripe_order_id');
         session()->forget('stripe_order_id');
 
-        $stripe = new StripeClient(config('paymentgateway.stripe.secret_key'));
+        $stripe = new StripeClient($this->getSecretKey());
         $response = $stripe->checkout->sessions->retrieve($stripe_session_id, []);
         $payment_intent = $response['payment_intent'] ?? '';
         $payment_status = $response['payment_status'] ?? '';
@@ -89,23 +112,28 @@ class StripePay extends PaymentGatewayBase
     }
 
     public function stripe_view($args){
-        return view('paymentgateway::stripe', ['stripe_data' => $args]);
+        return view('paymentgateway::stripe', ['stripe_data' => array_merge($args,[
+            'public_key' => $this->getPublicKey(),
+            'currency' => $this->getCurrency(),
+            'secret_key' => base64_encode($this->getSecretKey()),
+            'charge_amount' => $this->charge_amount($args['amount']),
+        ])]);
     }
 
     public function charge_customer_from_controller(array $args){
-        Stripe::setApiKey(config('paymentgateway.stripe.secret_key'));
+        Stripe::setApiKey(base64_decode($args['secret_key']));
         $session = Session::create([
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price_data' => [
-                    'currency' => $this->charge_currency(),
+                    'currency' => $args['currency'],
                     'product_data' => [
                         'name' => $args['title'],
+                        'description' => $args['description']
                     ],
-                    'unit_amount' => $this->charge_amount($args['amount']),
+                    'unit_amount' => $args['charge_amount'],
                 ],
-                'quantity' => 1,
-                'description' => $args['description']
+                'quantity' => 1
             ]],
             'mode' => 'payment',
             'success_url' => $args['ipn_url'],
@@ -270,7 +298,7 @@ class StripePay extends PaymentGatewayBase
      * */
     public function charge_currency()
     {
-        return self::global_currency();
+        return $this->getCurrency();
     }
     /**
      * this will refund payment gateway name

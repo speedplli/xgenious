@@ -3,9 +3,32 @@
 namespace Xgenious\Paymentgateway\Base\Gateways;
 use Xgenious\Paymentgateway\Base\PaymentGatewayBase;
 use KingFlamez\Rave\Facades\Rave as Flutterwave;
+use Xgenious\Paymentgateway\Traits\ConvertUsdSupport;
+use Xgenious\Paymentgateway\Traits\CurrencySupport;
+use Xgenious\Paymentgateway\Traits\PaymentEnvironment;
 
 class FlutterwavePay extends PaymentGatewayBase
 {
+
+    protected $public_key;
+    protected $secret_key;
+
+    use PaymentEnvironment,CurrencySupport,ConvertUsdSupport;
+
+    public function setPublicKey($public_key){
+        $this->public_key = $public_key;
+        return $this;
+    }
+    public function getPublicKey(){
+        return $this->public_key;
+    }
+    public function setSecretKey($secret_key){
+        $this->secret_key = $secret_key;
+        return $this;
+    }
+    public function getSecretKey(){
+        return $this->secret_key;
+    }
 
     /**
      * @inheritDoc
@@ -15,11 +38,10 @@ class FlutterwavePay extends PaymentGatewayBase
      * */
     public function charge_amount($amount)
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
-
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
             return $amount;
         }
-        return self::get_amount_in_usd($amount);
+        return $this->get_amount_in_usd($amount);
     }
 
     /**
@@ -28,6 +50,7 @@ class FlutterwavePay extends PaymentGatewayBase
      */
     public function ipn_response(array $args = [])
     {
+        $this->setConfig();
         $response = Flutterwave::verifyTransaction(request()->transaction_id);
         $status = $response['status'] ?? '';
 
@@ -55,8 +78,10 @@ class FlutterwavePay extends PaymentGatewayBase
             abort(405,__('We could not process your request due to your amount is higher than the maximum.'));
         }
 
+        $this->setConfig();
         //This generates a payment reference
         $reference = Flutterwave::generateReference();
+
         $order_id =  random_int(12345,99999).$args['order_id'].random_int(12345,99999);
         // Enter the details of the payment
         $data = [
@@ -99,8 +124,8 @@ class FlutterwavePay extends PaymentGatewayBase
      */
     public function charge_currency()
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())) {
-            return self::global_currency();
+        if (in_array($this->getCurrency(), $this->supported_currency_list())) {
+            return $this->getCurrency();
         }
         return "USD";
     }
@@ -124,5 +149,12 @@ class FlutterwavePay extends PaymentGatewayBase
         $return_val = isset($update['geoplugin_countryCode']) ? $update['geoplugin_countryCode'] : $return_val;
 
         return $return_val;
+    }
+
+    private function setConfig(){
+        \Config::set([
+            'flutterwave.publicKey' => $this->getPublicKey(),
+            'flutterwave.secretKey' => $this->getSecretKey(),
+        ]);
     }
 }

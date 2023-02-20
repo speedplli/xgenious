@@ -22,7 +22,7 @@
     (function($){
         "use strict";
         // Create a Stripe client
-        var stripe = Stripe("{{config('paymentgateway.stripe.public_key')}}");
+        var stripe = Stripe("{{$stripe_data['public_key']}}");
         var orderID = document.getElementById('order_id_input').value;
         var submitBtn = document.getElementById('payment_submit_btn');
 

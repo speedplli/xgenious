@@ -14,6 +14,9 @@
             <input type="hidden" name="amount" value="{{$paystack_data['price'] * 100}}"> {{-- required in kobo --}}
             <input type="hidden" name="quantity" value="1">
             <input type="hidden" name="currency" value="{{$paystack_data['currency']}}">
+            <input type="hidden" name="merchantEmail" value="{{$paystack_data['merchantEmail']}}">
+            <input type="hidden" name="secretKey" value="{{base64_encode($paystack_data['secretKey'])}}">
+            <input type="hidden" name="publicKey" value="{{$paystack_data['publicKey']}}">
             <input type="hidden" name="metadata" value="{{ json_encode($array = ['track' => $paystack_data['track'],'type' => $paystack_data['type'],'order_id' => $paystack_data['order_id']]) }}" > {{-- For other necessary things you want to add to your payload. it is optional though --}}
             <input type="hidden" name="reference" value="{{ Unicodeveloper\Paystack\Facades\Paystack::genTranxRef() }}"> {{-- required --}}
             <p>

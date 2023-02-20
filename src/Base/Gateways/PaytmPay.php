@@ -5,9 +5,55 @@ namespace Xgenious\Paymentgateway\Base\Gateways;
 use Anand\LaravelPaytmWallet\Facades\PaytmWallet;
 use Illuminate\Support\Str;
 use Xgenious\Paymentgateway\Base\PaymentGatewayBase;
+use Xgenious\Paymentgateway\Traits\CurrencySupport;
+use Xgenious\Paymentgateway\Traits\IndianCurrencySupport;
+use Xgenious\Paymentgateway\Traits\PaymentEnvironment;
 
 class PaytmPay extends PaymentGatewayBase
 {
+    use PaymentEnvironment,CurrencySupport,IndianCurrencySupport;
+    protected $merchant_id;
+    protected $merchant_key;
+    protected $merchant_website;
+    protected $channel;
+    protected $industry_type;
+
+    public function setMerchantId($merchant_id){
+        $this->merchant_id = $merchant_id;
+        return $this;
+    }
+    public function getMerchantId(){
+        return $this->merchant_id;
+    }
+    public function setMerchantKey($merchant_key){
+        $this->merchant_key = $merchant_key;
+        return $this;
+    }
+    public function getMerchantKey(){
+        return $this->merchant_key;
+    }
+    public function setMerchantWebsite($merchant_website){
+        $this->merchant_website = $merchant_website;
+        return $this;
+    }
+    public function getMerchantWebsite(){
+        return $this->merchant_website;
+    }
+    public function setChannel($channel){
+        $this->channel = $channel;
+        return $this;
+    }
+    public function getChannel(){
+        return $this->channel;
+    }
+    public function setIndustryType($industry_type){
+        $this->industry_type = $industry_type;
+        return $this;
+    }
+    public function getIndustryType(){
+        return $this->industry_type;
+    }
+
     /*
     * charge_amount();
     * @required param list
@@ -17,10 +63,10 @@ class PaytmPay extends PaymentGatewayBase
     * */
     public function charge_amount($amount)
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
             return $amount;
         }
-        return self::get_amount_in_inr($amount);
+        return $this->get_amount_in_inr($amount);
     }
 
 
@@ -53,9 +99,17 @@ class PaytmPay extends PaymentGatewayBase
         return $payment->receive();
     }
     protected function createReceiveDriver(){
+
         return $this->buildProvider(
             'Anand\LaravelPaytmWallet\Providers\ReceivePaymentProvider',
-            config('paymentgateway.paytm')
+            [
+                'env' => $this->getEnv() ? 'local': 'production', //env('PAYTM_ENVIRONMENT','local'), // values : (local | production)
+                'merchant_id' => $this->getMerchantId(),// env('PAYTM_MERCHANT_ID'),
+                'merchant_key' => $this->getMerchantKey(),// env('PAYTM_MERCHANT_KEY'),
+                'merchant_website' => $this->getMerchantWebsite(),// env('PAYTM_MERCHANT_WEBSITE'),
+                'channel' =>  $this->getChannel(),//env('PAYTM_CHANNEL'),
+                'industry_type' => $this->getIndustryType(),//env('PAYTM_INDUSTRY_TYPE'),
+            ]
         );
     }
     public function buildProvider($provider, $config){
@@ -103,8 +157,8 @@ class PaytmPay extends PaymentGatewayBase
      * */
     public function charge_currency()
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
-            return self::global_currency();
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
+            return $this->getCurrency();
         }
         return  "INR";
     }

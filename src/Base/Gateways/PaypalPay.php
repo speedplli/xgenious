@@ -2,50 +2,84 @@
 
 namespace Xgenious\Paymentgateway\Base\Gateways;
 
+use Illuminate\Support\Facades\Config;
+use Xgenious\Paymentgateway\Base\GlobalCurrency;
 use Xgenious\Paymentgateway\Base\PaymentGatewayBase;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
+use Xgenious\Paymentgateway\Traits\ConvertUsdSupport;
+use Xgenious\Paymentgateway\Traits\CurrencySupport;
+use Xgenious\Paymentgateway\Traits\PaymentEnvironment;
 
 class PaypalPay extends PaymentGatewayBase
 {
+    use PaymentEnvironment,CurrencySupport,ConvertUsdSupport;
+    protected $client_id;
+    protected $client_secret;
+    protected $app_id;
+
+    /* get app id */
+    private function getAppId(){
+        return  $this->app_id;
+    }
+    /* set app id */
+    public function setAppId($app_id){
+        $this->app_id = $app_id;
+        return $this;
+    }
+    /* set app id */
+    public function setClientId($client_id){
+        $this->client_id = $client_id;
+        return $this;
+    }
+    /* set app secret */
+    public function setClientSecret($client_secret){
+        $this->client_secret = $client_secret;
+        return $this;
+    }
+    /* get app id */
+    private function getClientId(){
+        return  $this->client_id;
+    }
+    /* get secret key */
+    private function getClientSecret(){
+        return $this->client_secret;
+    }
     /*
-* charge_amount();
-* @required param list
-* $amount
-*
-*
-* */
+    * charge_amount();
+    * @required param list
+    * $amount
+    *
+    *
+    * */
     public function charge_amount($amount)
     {
-        // TODO: Implement charge_amount() method.
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
             return $amount;
         }
-        return self::get_amount_in_usd($amount);
+        return $this->get_amount_in_usd($amount);
     }
 
+
     protected function getPaymentProvider($args){
+        Config::set([
+            'paypal.mode'    => $this->getEnv() ? 'sandbox' : 'live',
+            'paypal.sandbox' => [
+                'client_id'         => $this->getClientId(),
+                'client_secret'     => $this->getClientSecret(),
+                'app_id'            => $this->getAppId(),
+            ],
+            'paypal.live' => [
+                'client_id'         => $this->getClientId(),
+                'client_secret'     => $this->getClientSecret(),
+                'app_id'            => $this->getAppId(),
+            ],
+            'paypal.payment_action' => 'Sale',
+            'paypal.currency'       => $this->charge_currency(),
+            'paypal.notify_url'     => $args['ipn_url'],
+            'paypal.locale'         => app()->getLocale(),
+            'paypal.validate_ssl'   => true,
+        ]);
         $provider = new PayPalClient;
-        $config = [
-            'mode'    => config('paymentgateway.paypal.mode'),
-            'sandbox' => [
-                'client_id'         => config('paymentgateway.paypal.sandbox.client_id'),
-                'client_secret'     => config('paymentgateway.paypal.sandbox.client_secret'),
-                'app_id'            => config('paymentgateway.paypal.sandbox.app_id'),
-            ],
-            'live' => [
-                'client_id'         => config('paymentgateway.paypal.live.client_id'),
-                'client_secret'     => config('paymentgateway.paypal.live.client_secret'),
-                'app_id'            => config('paymentgateway.paypal.live.app_id'),
-            ],
-
-            'payment_action' => 'Sale',
-            'currency'       => $this->charge_currency(),
-            'notify_url'     => $args['ipn_url'],
-            'locale'         => app()->getLocale(),
-            'validate_ssl'   => true,
-        ];
-
-        $provider->setApiCredentials($config);
         $access_token = $provider->getAccessToken();
 
         abort_if(isset($access_token['type'])  && $access_token['type'] === 'error',405,$access_token['message'] ?? '');
@@ -73,7 +107,7 @@ class PaypalPay extends PaymentGatewayBase
                 0 => [
                     "amount"=> [
                         "currency_code"=> $this->charge_currency(),
-                        "value"=> number_format($args['amount'], 2, ".", "")
+                        "value"=> number_format($this->charge_amount($args['amount']), 2, ".", "")
                     ]
                 ]
             ],
@@ -142,8 +176,8 @@ class PaypalPay extends PaymentGatewayBase
      * */
     public function charge_currency()
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
-            return self::global_currency();
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
+            return $this->getCurrency();
         }
         return  "USD";
     }
@@ -153,6 +187,6 @@ class PaypalPay extends PaymentGatewayBase
      * return array
      * */
     public function supported_currency_list(){
-        return ['AUD', 'BRL', 'CAD', 'CNY', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'INR', 'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD'];
+        return ['USD']; //['AUD', 'BRL', 'CAD', 'CNY', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF', 'INR', 'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP', 'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD'];
     }
 }

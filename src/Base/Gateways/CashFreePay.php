@@ -1,28 +1,40 @@
 <?php
 
 namespace Xgenious\Paymentgateway\Base\Gateways;
+use Xgenious\Paymentgateway\Base\GlobalCurrency;
 use Xgenious\Paymentgateway\Base\PaymentGatewayBase;
+use Xgenious\Paymentgateway\Traits\CurrencySupport;
+use Xgenious\Paymentgateway\Traits\IndianCurrencySupport;
+use Xgenious\Paymentgateway\Traits\PaymentEnvironment;
+
 
 class CashFreePay extends PaymentGatewayBase
 {
+    use IndianCurrencySupport,CurrencySupport,PaymentEnvironment;
+
+    protected $app_id;
+    protected $secret_key;
 
     /**
      * @inheritDoc
      */
     public function charge_amount($amount)
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
             return $amount;
         }
-        return self::get_amount_in_inr($amount);
+        return $this->get_amount_in_inr($amount);
     }
+
+
 
     /**
      * @inheritDoc
      */
     public function ipn_response(array $args = [])
     {
-        $secretKey = config('paymentgateway.cashfree.secret_key');
+        $config_data = $this->setConfig();
+        $secretKey = $config_data['secret_key'];
         $orderId = request()->get('orderId');
         $orderAmount = request()->get('orderAmount');
         $referenceId = request()->get('referenceId');
@@ -103,8 +115,8 @@ class CashFreePay extends PaymentGatewayBase
      */
     public function charge_currency()
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())){
-            return self::global_currency();
+        if (in_array($this->getCurrency(), $this->supported_currency_list())){
+            return $this->getCurrency();
         }
         return  "INR";
     }
@@ -117,18 +129,37 @@ class CashFreePay extends PaymentGatewayBase
         return 'cashfree';
     }
 
+    /* set app id */
+    public function setAppId($app_id){
+         $this->app_id = $app_id;
+         return $this;
+    }
+    /* set app secret */
+    public function setSecretKey($secret_key){
+        $this->secret_key = $secret_key;
+        return $this;
+    }
+    /* get app id */
+    private function getAppId(){
+        return  $this->app_id;
+    }
+    /* get secret key */
+    private function getSecretKey(){
+        return $this->secret_key;
+    }
+
     protected function setConfig() : array
     {
         return [
-          'app_id' => config('paymentgateway.cashfree.app_id'),
-          'secret_key' => config('paymentgateway.cashfree.secret_key'),
+          'app_id' => $this->getAppId(),
+          'secret_key' => $this->getSecretKey(),
           'order_currency' => 'INR',
           'action' => $this->get_api_url()
         ];
     }
 
     public function get_api_url(){
-        return config('paymentgateway.cashfree.test_mode') ?
+        return $this->getEnv() ?
             'https://test.cashfree.com/billpay/checkout/post/submit' :
             'https://www.cashfree.com/checkout/post/submit';
     }

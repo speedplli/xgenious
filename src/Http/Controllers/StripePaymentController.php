@@ -12,6 +12,7 @@ class StripePaymentController extends Controller
         try{
             $stripe_session = XgPaymentGateway::stripe()->charge_customer_from_controller([
                 'amount' => $request->amount,
+                'charge_amount' => $request->charge_amount,
                 'title' => $request->title,
                 'description' => $request->description,
                 'ipn_url' => $request->ipn_url,
@@ -21,7 +22,9 @@ class StripePaymentController extends Controller
                 'success_url' => $request->success_url,
                 'email' => $request->email,
                 'name' => $request->name,
-                'payment_type' => $request->payment_type
+                'payment_type' => $request->payment_type,
+                'secret_key' => $request->secret_key,
+                'currency' => $request->currency,
             ]);
             return response()->json(['id' => $stripe_session['id']]);
         }catch(\Exception $e){

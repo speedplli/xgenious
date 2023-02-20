@@ -6,16 +6,23 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Instamojo\Instamojo;
 use Xgenious\Paymentgateway\Base\PaymentGatewayBase;
+use Xgenious\Paymentgateway\Traits\CurrencySupport;
+use Xgenious\Paymentgateway\Traits\IndianCurrencySupport;
+use Xgenious\Paymentgateway\Traits\PaymentEnvironment;
 
 class InstamojoPay extends PaymentGatewayBase
 {
+    use IndianCurrencySupport,CurrencySupport,PaymentEnvironment;
+
+    protected $client_id;
+    protected $secret_key;
 
     public function charge_amount($amount)
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())) {
+        if (in_array($this->getCurrency(), $this->supported_currency_list())) {
             return $amount;
         }
-        return self::get_amount_in_inr($amount);
+        return $this->get_amount_in_inr($amount);
     }
 
     public function ipn_response(array $args = [])
@@ -77,8 +84,8 @@ class InstamojoPay extends PaymentGatewayBase
 
     public function charge_currency()
     {
-        if (in_array(self::global_currency(), $this->supported_currency_list())) {
-            return self::global_currency();
+        if (in_array($this->getCurrency(), $this->supported_currency_list())) {
+            return $this->getCurrency();
         }
         return "INR";
     }
@@ -90,15 +97,34 @@ class InstamojoPay extends PaymentGatewayBase
 
     protected function base_url()
     {
-        $prefix = config('paymentgateway.instamojo.test_mode') ? 'test' : 'api';
+        $prefix = $this->getEnv() ? 'test' : 'api';
         return 'https://' . $prefix . '.instamojo.com/';
+    }
+
+    /* set app id */
+    public function setClientId($client_id){
+        $this->client_id = $client_id;
+        return $this;
+    }
+    /* set app secret */
+    public function setSecretKey($secret_key){
+        $this->secret_key = $secret_key;
+        return $this;
+    }
+    /* get app id */
+    private function getClientId(){
+        return  $this->client_id;
+    }
+    /* get secret key */
+    private function getSecretKey(){
+        return $this->secret_key;
     }
 
     protected function setConfig()
     {
 
         $response = Http::asForm()
-            ->withBasicAuth(config('paymentgateway.instamojo.client_id'), config('paymentgateway.instamojo.client_secret'))
+            ->withBasicAuth($this->getClientId(), $this->getSecretKey())
             ->post($this->base_url() . 'oauth2/token/', [
                 'grant_type' => 'client_credentials',
             ]);
