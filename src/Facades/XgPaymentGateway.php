@@ -3,9 +3,8 @@
 namespace Xgenious\Paymentgateway\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Xgenious\Paymentgateway\Base\Gateways\InstamojoPay;
 use Xgenious\Paymentgateway\Base\PaymentGatewayHelpers;
-use Xgenious\Paymentgateway\Base\Gateways\SquarePay;
+
 /**
  * @see GlobalCurrency
  * @method static script_currency_list()
@@ -28,9 +27,9 @@ use Xgenious\Paymentgateway\Base\Gateways\SquarePay;
  * @method static cinetpay()
  * @method static paytabs()
  * @method static zitopay()
+ * @method static hyperpay()
  *
- *  @see InstamojoPay
- * @method public setClientId($client_id)
+ * @method setClientId($client_id)
  */
 class XgPaymentGateway extends Facade
 {

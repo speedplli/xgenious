@@ -81,6 +81,11 @@ return [
       'client_secret' => env('MERCADO_PAGO_CLIENT_SECRET'),
       'test_mode' => env('MERCADO_PAGO_TEST_MODE',true),
     ],
+    'hyperpay' => [
+        'token' => env('HYPERPAY_TOKEN'),
+        'client_secret' => env('MERCADO_PAGO_CLIENT_SECRET'),
+        'test_mode' => env('MERCADO_PAGO_TEST_MODE',true),
+    ],
     'global_currency' => env('SITE_GLOBAL_CURRENCY','USD'),
     'ngn_exchange_rate' => env('NGN_EXCHANGE_RATE',null),
     'inr_exchange_rate' => env('INR_EXCHANGE_RATE',null),

@@ -54,6 +54,7 @@ Information about the installation procedure for this package.
 21. Paytr (upcoming)
 22. Authorized.net (upcoming)
 23. Pagseguro (upcoming)
+24. HyperPay
 
 
 ## Payment Request Function With params v1

@@ -2,6 +2,7 @@
 
 namespace Xgenious\Paymentgateway\Base;
 
+use Xgenious\Paymentgateway\Base\Gateways\HyperPay;
 use Xgenious\Paymentgateway\Base\Gateways\BillPlzPay;
 use Xgenious\Paymentgateway\Base\Gateways\CashFreePay;
 use Xgenious\Paymentgateway\Base\Gateways\CinetPay;
@@ -28,88 +29,111 @@ use Xgenious\Paymentgateway\Base\Gateways\ZitoPay;
  * @method  setAccessToken();
  * @method  setLocationId();
  */
-
 class PaymentGatewayHelpers
 {
 
-    public function stripe() : StripePay
+    public function stripe(): StripePay
     {
         return new StripePay();
     }
-    public function paypal() : PaypalPay
+
+    public function paypal(): PaypalPay
     {
         return new PaypalPay();
     }
-    public function midtrans() : MidtransPay
+
+    public function midtrans(): MidtransPay
     {
         return new MidtransPay();
     }
-    public function paytm() : PaytmPay
+
+    public function paytm(): PaytmPay
     {
         return new PaytmPay();
     }
-    public function razorpay() : RazorPay
+
+    public function razorpay(): RazorPay
     {
         return new RazorPay();
     }
-    public function mollie() : MolliePay
+
+    public function mollie(): MolliePay
     {
         return new MolliePay();
     }
-    public function flutterwave() : FlutterwavePay
+
+    public function flutterwave(): FlutterwavePay
     {
         return new FlutterwavePay();
     }
-    public function paystack() : PaystackPay
+
+    public function paystack(): PaystackPay
     {
         return new PaystackPay();
     }
 
-    public function payfast() : PayFastPay
+    public function payfast(): PayFastPay
     {
         return new PayFastPay();
     }
-    public function cashfree() : CashFreePay
+
+    public function cashfree(): CashFreePay
     {
         return new CashFreePay();
     }
-    public function instamojo() : InstamojoPay
+
+    public function instamojo(): InstamojoPay
     {
         return new InstamojoPay();
     }
-    public function marcadopago() : MarcadoPagoPay
+
+    public function marcadopago(): MarcadoPagoPay
     {
         return new MarcadoPagoPay();
     }
-    public function payumoney() : PayUmoneyPay
+
+    public function payumoney(): PayUmoneyPay
     {
         return new PayUmoneyPay();
     }
-    public function squareup() : SquarePay
+
+    public function squareup(): SquarePay
     {
         return new SquarePay();
     }
-    public function cinetpay() : CinetPay
+
+    public function cinetpay(): CinetPay
     {
         return new CinetPay();
     }
-    public function paytabs() : PayTabsPay
+
+    public function paytabs(): PayTabsPay
     {
         return new PayTabsPay();
     }
-    public function billplz() : BillPlzPay
+
+    public function billplz(): BillPlzPay
     {
         return new BillPlzPay();
     }
-    public function zitopay() : ZitoPay
+
+    public function zitopay(): ZitoPay
     {
         return new ZitoPay();
     }
-    public function script_currency_list(){
+
+    public function hyperpay(): HyperPay
+    {
+        return new HyperPay();
+    }
+
+    public function script_currency_list()
+    {
         return GlobalCurrency::script_currency_list();
     }
 
-    public static function wrapped_id($id){
-        return random_int(11111,99999).$id.random_int(11111,99999);
+    public static function wrapped_id($id)
+    {
+        return random_int(11111, 99999) . $id . random_int(11111, 99999);
     }
 }

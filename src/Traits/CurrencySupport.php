@@ -2,8 +2,6 @@
 
 namespace Xgenious\Paymentgateway\Traits;
 
-use Xgenious\Paymentgateway\Base\Gateways\CashFreePay;
-
 trait CurrencySupport
 {
     protected $currency;
