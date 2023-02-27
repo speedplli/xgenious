@@ -11,16 +11,27 @@ class HyperPay extends PaymentGatewayBase
 {
     use PaymentEnvironment, CurrencySupport;
 
-    protected $token = 'OGE4Mjk0MTc0YjdlY2IyODAxNGI5Njk5MjIwMDE1Y2N8c3k2S0pzVDg=';
+    protected $token;
+    protected $entity_id;
 
     private function getAuthorizationToken()
     {
         return $this->token;
     }
 
-    private function setAuthorizationToken($value)
+    public function setAuthorizationToken($value)
     {
         $this->token = $value;
+    }
+
+    private function getEntityID()
+    {
+        return $this->entity_id;
+    }
+
+    public function setEntityID($value)
+    {
+        $this->entity_id = $value;
     }
 
     public function charge_amount($amount)
@@ -30,11 +41,26 @@ class HyperPay extends PaymentGatewayBase
 
     public function ipn_response(array $args = []): array
     {
+        $transaction_id = request()->get('id');
         if (!empty($transaction_id)) {
-            return $this->verified_data([
-                'transaction_id' => $transaction_id,
-                'order_id' => $stripe_order_id
+            $response = $this->client()->get("checkouts/{$transaction_id}/payment?entityId={$this->getEntityID()}", [
+                'headers' => [
+                    'Authorization' => "Bearer {$this->getAuthorizationToken()}",
+                ]
             ]);
+
+            $response = json_decode($response->getBody(), true);
+            $order_id = $response['merchantTransactionId'] ?: null;
+            $code = $response['result']['code'];
+            $check_000_code = preg_match('/^(000\.000\.|000\.100\.1|000\.[36])/', $code);
+            $check_400_code = preg_match('/^(000\.400\.0[^3]|000\.400\.100)/', $code);
+
+            if ($check_000_code || $check_400_code) {
+                return $this->verified_data([
+                    'transaction_id' => $transaction_id,
+                    'order_id' => $order_id
+                ]);
+            }
         }
 
         return ['status' => 'failed'];
@@ -55,18 +81,21 @@ class HyperPay extends PaymentGatewayBase
 
     private function generateCheckoutID($args): string
     {
-        $this->setCurrency('JOD');
+        $form_params = [
+            'entityId' => $this->getEntityID(),
+            'amount' => $args['amount'],
+            'currency' => $this->charge_currency(),
+            'paymentType' => 'DB',
+            'merchantTransactionId' => $args['order_id'],
+            'createRegistration' => $args['payment_type'] === 'monthly' ? 'true' : 'false',
+        ];
 
-        $response = self::client()->post('checkouts', [
-            'form_params' => [
-                'entityId' => '8a8294174b7ecb28014b9699220015ca',
-                'amount' => '92.00',
-                'currency' => 'EUR',
-                'paymentType' => 'DB',
-                'merchantTransactionId' => $args['order_id'],
-                'createRegistration' => $args['payment_type'] === 'monthly' ? 'true' : 'false',
-                'testMode' => 'EXTERNAL'
-            ],
+        if ($this->getEnv()) {
+            $form_params['testMode'] = 'EXTERNAL';
+        }
+
+        $response = $this->client()->post('checkouts', [
+            'form_params' => $form_params,
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->getAuthorizationToken(),
                 'Content-Type' => 'application/x-www-form-urlencoded',
@@ -81,7 +110,10 @@ class HyperPay extends PaymentGatewayBase
      * */
     public function charge_currency()
     {
-        return $this->getCurrency();
+        if (in_array($this->getCurrency(), $this->supported_currency_list())) {
+            return $this->getCurrency();
+        }
+        return $this->supported_currency_list()[0];
     }
 
     /**
@@ -95,15 +127,13 @@ class HyperPay extends PaymentGatewayBase
     public function supported_currency_list(): array
     {
         return [
-            'USD',
-            'EUR',
             'JOD',
-            'SAR'
         ];
     }
 
-    private static function client()
+    private function client()
     {
-        return new Client(['base_uri' => 'https://eu-test.oppwa.com/v1/']);
+        $environment = $this->getEnv() ? 'test' : 'prod';
+        return new Client(['base_uri' => "https://eu-{$environment}.oppwa.com/v1/"]);
     }
 }
