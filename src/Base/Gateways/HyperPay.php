@@ -12,6 +12,8 @@ class HyperPay extends PaymentGatewayBase
     use PaymentEnvironment, CurrencySupport;
 
     protected $token;
+    protected $billing = [];
+    protected $customer = [];
     protected $entity_id;
 
     private function getAuthorizationToken()
@@ -32,6 +34,26 @@ class HyperPay extends PaymentGatewayBase
     public function setEntityID($value)
     {
         $this->entity_id = $value;
+    }
+
+    private function getCustomer(): array
+    {
+        return $this->customer;
+    }
+
+    public function setCustomer(array $value)
+    {
+        $this->customer = $value;
+    }
+
+    private function getBilling(): array
+    {
+        return $this->billing;
+    }
+
+    public function setBilling(array $value)
+    {
+        $this->billing = $value;
     }
 
     public function charge_amount($amount)
@@ -89,6 +111,14 @@ class HyperPay extends PaymentGatewayBase
             'merchantTransactionId' => $args['order_id'],
             'createRegistration' => $args['payment_type'] === 'monthly' ? 'true' : 'false',
         ];
+
+        if ($this->getCustomer()) {
+            $form_params = array_merge($form_params, $this->getCustomer());
+        }
+
+        if ($this->getBilling()) {
+            $form_params = array_merge($form_params, $this->getBilling());
+        }
 
         if ($this->getEnv()) {
             $form_params['testMode'] = 'EXTERNAL';
