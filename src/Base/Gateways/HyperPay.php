@@ -105,7 +105,7 @@ class HyperPay extends PaymentGatewayBase
     {
         $form_params = [
             'entityId' => $this->getEntityID(),
-            'amount' => $args['amount'],
+            'amount' => number_format($args['amount'], 2, '.', ''),
             'currency' => $this->charge_currency(),
             'paymentType' => 'DB',
             'merchantTransactionId' => $args['order_id'],
