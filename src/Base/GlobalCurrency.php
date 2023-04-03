@@ -150,6 +150,7 @@ class GlobalCurrency
             'YER' => '﷼',
             'ZAR' => 'R',
             'TND' => 'د.ت',
+            'JOD' => 'دأ'
         ];
     }
 }
