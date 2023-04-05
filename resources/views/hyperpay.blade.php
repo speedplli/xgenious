@@ -9,6 +9,15 @@
 <script type="text/javascript">
     var wpwlOptions = {
         paymentTarget: "_top",
+        billingAddress: {},
+        mandatoryBillingFields: {
+            country: true,
+            state: true,
+            city: true,
+            postcode: true,
+            street1: true,
+            street2: false
+        }
     }
 </script>
 </body>

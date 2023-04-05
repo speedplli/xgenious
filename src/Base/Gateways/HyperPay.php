@@ -46,16 +46,6 @@ class HyperPay extends PaymentGatewayBase
         $this->customer = $value;
     }
 
-    private function getBilling(): array
-    {
-        return $this->billing;
-    }
-
-    public function setBilling(array $value)
-    {
-        $this->billing = $value;
-    }
-
     public function charge_amount($amount)
     {
         return $amount;
@@ -114,10 +104,6 @@ class HyperPay extends PaymentGatewayBase
 
         if ($this->getCustomer()) {
             $form_params = array_merge($form_params, $this->getCustomer());
-        }
-
-        if ($this->getBilling()) {
-            $form_params = array_merge($form_params, $this->getBilling());
         }
 
         if ($this->getEnv()) {
