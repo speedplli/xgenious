@@ -1433,7 +1433,7 @@ $zitopay->setUsername('dvrobin4');
 $zitopay->setCurrency("USD");
 $zitopay->setEnv(true);
 $zitopay->setExchangeRate(50); // if INR not set as currency
-dd($zitopay->ipn_response());
+$zitopay->ipn_response();
 ```
 
 

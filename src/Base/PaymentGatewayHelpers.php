@@ -19,7 +19,6 @@ use Xgenious\Paymentgateway\Base\Gateways\PayUmoneyPay;
 use Xgenious\Paymentgateway\Base\Gateways\RazorPay;
 use Xgenious\Paymentgateway\Base\Gateways\SquarePay;
 use Xgenious\Paymentgateway\Base\Gateways\StripePay;
-use Xgenious\Paymentgateway\Base\Gateways\MarcadoPagoPay;
 use Xgenious\Paymentgateway\Base\Gateways\ZitoPay;
 
 
@@ -85,11 +84,6 @@ class PaymentGatewayHelpers
     public function instamojo(): InstamojoPay
     {
         return new InstamojoPay();
-    }
-
-    public function marcadopago(): MarcadoPagoPay
-    {
-        return new MarcadoPagoPay();
     }
 
     public function payumoney(): PayUmoneyPay
