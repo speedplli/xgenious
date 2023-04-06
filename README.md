@@ -42,19 +42,18 @@ Information about the installation procedure for this package.
 9. Payfast[^2.0 supported]
 10. Cashfree [^v2.0 supported]
 11. Instamojo [^v2.0 supported]
-12. Mercado pago [^v2.0 supported]
-13. Squareup [^v2.0]
-14. Cinetpay [^v2.0]
-15. PayTabs [^v2.0]
-16. BillPlz [^v2.0]
-17. Zitopay [^v2.0]
-18. PayU (upcoming) 
-19. PerfectMoney (upcoming)
-20. payumoney (upcoming)
-21. Paytr (upcoming)
-22. Authorized.net (upcoming)
-23. Pagseguro (upcoming)
-24. HyperPay
+12. Squareup [^v2.0]
+13. Cinetpay [^v2.0]
+14. PayTabs [^v2.0]
+15. BillPlz [^v2.0]
+16. Zitopay [^v2.0]
+17. PayU (upcoming) 
+18. PerfectMoney (upcoming)
+19. payumoney (upcoming)
+20. Paytr (upcoming)
+21. Authorized.net (upcoming)
+22. Pagseguro (upcoming)
+23. HyperPay
 
 
 ## Payment Request Function With params v1
@@ -950,73 +949,6 @@ dd($instamojo->ipn_response());
 
 ```
 
-
-## Mercadopago
-
-[Checkout Mercadopago Setup Documentation](https://xgenious.com/docs/nexelit/payment-gateway-settings/mercadopago/)
-
-Here is Test Credentials For Mercadopago 
-
-````dotenv
-MERCADO_PAGO_CLIENT_ID=TEST-0a3cc78a-57bf-4556-9dbe-2afa06347769
-MERCADO_PAGO_CLIENT_SECRET=TEST-4644184554273630-070813-7d817e2ca1576e75884001d0755f8a7a-786499991
-MERCADO_PAGO_TEST_MODE=true
-````
->> Mercado Pago only works with BRL currency 
-
-#### Mercado ipn route example
-````php
-Route::get('/mercadopago-ipn', [\App\Http\Controllers\PaymentLogController::class,'mercadopago_ipn'] )->name('payment.mercadopago.ipn');
-````
-
-##### Test Credentials for Mercadopago
-````
-For payments use the following card details:
-Number: 5031 4332 1540 6351
-Date: 11/25
-CVV: 123
-Name: abc
-````
-
-
-## 2.0 Setup For Instamojo
-route and middleware code will be same as version ^1.0, version ^2.0, will change only customer_charge and ipn_response method
-
-#### charge_customer method example
-```php
-$marcadopago = XgPaymentGateway::marcadopago();
-$marcadopago->setClientId('client_id');
-$marcadopago->setClientSecret('client_secret');
-$marcadopago->setCurrency("USD");
-$marcadopago->setExchangeRate(82); // if BRL not set as currency, you must have to provide exchange rate for it
-$marcadopago->setEnv(true); ////true mean sandbox mode , false means live mode
-$response =  $marcadopago->charge_customer([
-    'amount' => 10,
-    'title' => 'this is test title',
-    'description' => 'this is test description',
-    'ipn_url' => route('payment.instamojo.ipn'), //get route
-    'order_id' => 56,
-    'track' => 'asdfasdfsdf',
-    'cancel_url' => route('payment.failed'),
-    'success_url' => route('payment.success'),
-    'email' => 'dvrobin4@gmail.com',
-    'name' => 'sharifur rhamna',
-    'payment_type' => 'order',
-]);
-return $response;
-```
-#### ipn_response method example
-
-```php
-$marcadopago = XgPaymentGateway::marcadopago();
-$marcadopago->setClientId('client_id');
-$marcadopago->setClientSecret('client_secret');
-$marcadopago->setEnv(true); 
-dd($marcadopago->ipn_response());
-
-```
-
-
 ## Squareup
 
 [Checkout Squareup Setup Documentation](https://xgenious.com/docs/nexelit/payment-gateway-settings/how-to-get-square-payment-gateway-api-credentials/)
@@ -1027,7 +959,7 @@ Here is Test Credentials For Squareup
 
 #### Squareup ipn route example
 ````php
-Route::get('/Squareup-ipn', [\App\Http\Controllers\PaymentLogController::class,'Squareup_ipn'] )->name('payment.mercadopago.ipn');
+Route::get('/squareup-ipn', [\App\Http\Controllers\PaymentLogController::class,'squareup_ipn'] )->name('payment.squareup.ipn');
 ````
 
 ##### Api Credentials for Squareup
@@ -1109,7 +1041,7 @@ Here is Test Credentials For PayTabs
 
 #### PayTabs ipn route example
 ````php
-Route::post('/paytabs-ipn', [\App\Http\Controllers\PaymentLogController::class,'paytabs_ipn'] )->name('payment.mercadopago.ipn');
+Route::post('/paytabs-ipn', [\App\Http\Controllers\PaymentLogController::class,'paytabs_ipn'] )->name('payment.paytabs.ipn');
 ````
 
 ##### Api Credentials for PayTabs
