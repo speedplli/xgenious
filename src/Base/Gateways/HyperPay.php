@@ -97,6 +97,7 @@ class HyperPay extends PaymentGatewayBase
     {
         return view('paymentgateway::hyperpay', [
             'checkout_id' => $this->generateCheckoutID($args),
+            'environment' => $this->getEnv() ? 'test' : 'prod',
             'url' => $args['ipn_url']
         ]);
     }
