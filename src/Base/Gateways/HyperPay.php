@@ -157,7 +157,8 @@ class HyperPay extends PaymentGatewayBase
     public function supported_currency_list(): array
     {
         return [
-            'JOD',
+            'JOD' => 'JOD',
+            'SAR' => 'SAR'
         ];
     }
 
