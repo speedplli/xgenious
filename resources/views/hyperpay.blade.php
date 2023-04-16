@@ -9,7 +9,9 @@
 <script type="text/javascript">
     var wpwlOptions = {
         paymentTarget: "_top",
-        billingAddress: {},
+        billingAddress: {
+            country: "JO"
+        },
         mandatoryBillingFields: {
             country: true,
             state: true,
