@@ -8,18 +8,7 @@
 <form action="{{ $url }}" class="paymentWidgets" data-brands="VISA MASTER AMEX"></form>
 <script type="text/javascript">
     var wpwlOptions = {
-        paymentTarget: "_top",
-        billingAddress: {
-            country: "JO"
-        },
-        mandatoryBillingFields: {
-            country: true,
-            state: true,
-            city: true,
-            postcode: true,
-            street1: true,
-            street2: false
-        }
+        paymentTarget: "_top"
     }
 </script>
 </body>
