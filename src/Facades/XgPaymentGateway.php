@@ -37,6 +37,7 @@ use Xgenious\Paymentgateway\Base\Gateways\FlutterwavePay;
  * @method static FlutterwavePay flutterwave()
  * @method static PaystackPay paystack()
  * @method static PayFastPay payfast()
+ * @method static BillPlzPay billplz()
  * @method static CashFreePay cashfree()
  * @method static InstamojoPay instamojo()
  * @method static PayUmoneyPay payumoney()
